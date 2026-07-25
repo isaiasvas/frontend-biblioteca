@@ -409,7 +409,6 @@ const loadUsuarios = async (url = USUARIOS_ENDPOINT) => {
     state.previous = data.previous;
     state.isLoading = false;
     state.hasError = false;
-
     renderCards();
     renderPagination();
     filterUsuarios();
@@ -425,13 +424,29 @@ const loadUsuarios = async (url = USUARIOS_ENDPOINT) => {
  * Abre o modal reutilizável de cadastro/edição de usuário.
  * Por enquanto exibe apenas um placeholder, sem lógica de submissão.
  */
-const openModal = (usuario_id = null) => {
+const openModal = (usuarioId = null) => {
   usuarioModal.show();
+
+  const usuario = usuarioId != null
+    ? state.usuarios.find((u) => u.id === usuarioId)
+    : null;
+
   const form_usuario_id = document.getElementById('usuario_id');
-  form_usuario_id.value = usuario_id ?? '';
+  form_usuario_id.value = usuario?.id ?? '';
 
   document.getElementById('usuarioModalLabel').textContent =
-    usuario_id != null ? 'Editar Usuario' : 'Cadastro de Usuário';
+    usuario ? 'Editar Usuario' : 'Cadastro de Usuário';
+
+  if (usuario) {
+    document.getElementById('usuario_nome_completo').value = usuario.nome_completo ?? '';
+    document.getElementById('usuario_documento').value = usuario.documento ?? '';
+    
+    // preencha aqui os demais campos do form com a entidade completa
+    // ex: document.getElementById('usuario_email').value = usuario.email ?? '';
+  } else {
+    // limpa o form ao abrir para "Novo Usuário"
+    document.getElementById('usuario_nome_completo').value = '';
+  }
 };
 
 /* ---------- 12. Sidebar responsiva ---------- */
