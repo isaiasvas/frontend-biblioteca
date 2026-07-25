@@ -314,7 +314,7 @@ const buildRow = (usuario) => {
           <button class="action-btn view" title="Visualizar" data-bs-toggle="tooltip" aria-label="Visualizar usuário">
             <i class="fa-solid fa-eye"></i>
           </button>
-          <button class="action-btn edit" title="Editar" data-bs-toggle="tooltip" aria-label="Editar usuário">
+          <button class="action-btn edit" id="btnEditarUsuario" onClick="openModal(${usuario.id})" title="Editar" data-bs-toggle="tooltip" aria-label="Editar usuário">
             <i class="fa-solid fa-pen"></i>
           </button>
           <button class="action-btn delete" title="Excluir" data-bs-toggle="tooltip" aria-label="Excluir usuário">
@@ -425,8 +425,13 @@ const loadUsuarios = async (url = USUARIOS_ENDPOINT) => {
  * Abre o modal reutilizável de cadastro/edição de usuário.
  * Por enquanto exibe apenas um placeholder, sem lógica de submissão.
  */
-const openModal = () => {
+const openModal = (usuario_id = null) => {
   usuarioModal.show();
+  const form_usuario_id = document.getElementById('usuario_id');
+  form_usuario_id.value = usuario_id ?? '';
+
+  document.getElementById('usuarioModalLabel').textContent =
+    usuario_id != null ? 'Editar Usuario' : 'Cadastro de Usuário';
 };
 
 /* ---------- 12. Sidebar responsiva ---------- */
@@ -453,7 +458,7 @@ const initEventListeners = () => {
 
   els.btnRetry.addEventListener('click', () => loadUsuarios());
 
-  els.btnNovoUsuario.addEventListener('click', openModal);
+  els.btnNovoUsuario.addEventListener('click', () => openModal());
 
   els.searchInput.addEventListener('input', (evento) => {
     state.searchTerm = evento.target.value;
@@ -487,6 +492,8 @@ const initEventListeners = () => {
 const init = () => {
   initEventListeners();
   loadUsuarios();
+  
 };
 
 document.addEventListener('DOMContentLoaded', init);
+
