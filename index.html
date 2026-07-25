@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuários · Darkone Admin</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- App CSS -->
+  <link href="usuarios.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark"><i class="fa-solid fa-hexagon-nodes"></i></span>
+      <span class="brand-text">Darkone<em>.</em></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <p class="nav-section-label">Principal</p>
+      <a href="#" class="nav-link">
+        <i class="fa-solid fa-grid-2"></i><span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-link active">
+        <i class="fa-solid fa-users"></i><span>Usuários</span>
+        <span class="nav-pill" id="sidebarUserCount">0</span>
+      </a>
+      <a href="#" class="nav-link">
+        <i class="fa-solid fa-graduation-cap"></i><span>Turmas</span>
+      </a>
+      <a href="#" class="nav-link">
+        <i class="fa-solid fa-file-invoice-dollar"></i><span>Financeiro</span>
+      </a>
+
+      <p class="nav-section-label">Gestão</p>
+      <a href="#" class="nav-link">
+        <i class="fa-solid fa-map-location-dot"></i><span>Endereços</span>
+      </a>
+      <a href="#" class="nav-link">
+        <i class="fa-solid fa-bell"></i><span>Notificações</span>
+      </a>
+      <a href="#" class="nav-link">
+        <i class="fa-solid fa-gear"></i><span>Configurações</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="storage-card">
+        <i class="fa-solid fa-server"></i>
+        <div>
+          <strong>API local</strong>
+          <span>localhost:8000</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ OVERLAY (mobile) ============ -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="btn-icon-only d-lg-none" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <div class="topbar-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Pesquisar no sistema...">
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn-icon-only" aria-label="Notificações">
+          <i class="fa-regular fa-bell"></i>
+          <span class="notif-dot"></span>
+        </button>
+        <button class="btn-icon-only" aria-label="Mensagens">
+          <i class="fa-regular fa-envelope"></i>
+        </button>
+        <div class="topbar-divider"></div>
+        <div class="topbar-user">
+          <div class="avatar-chip">AD</div>
+          <div class="topbar-user-info">
+            <strong>Admin</strong>
+            <span>Coordenação</span>
+          </div>
+          <i class="fa-solid fa-chevron-down"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content">
+
+      <!-- Header da página -->
+      <div class="page-header">
+        <div>
+          <nav class="breadcrumb-trail" aria-label="breadcrumb">
+            <span>Dashboard</span>
+            <i class="fa-solid fa-chevron-right"></i>
+            <span class="current">Usuários</span>
+          </nav>
+          <h1>Usuários</h1>
+          <p class="page-subtitle">Gerencie alunos, funcionários e convidados cadastrados na plataforma.</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-outline-refresh" id="btnRefresh">
+            <i class="fa-solid fa-rotate"></i><span>Atualizar</span>
+          </button>
+          <button class="btn btn-primary-glow" id="btnNovoUsuario">
+            <i class="fa-solid fa-plus"></i><span>Novo Usuário</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <section class="stats-grid" id="statsGrid" aria-label="Resumo de usuários">
+        <article class="stat-card stat-card--total">
+          <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-body">
+            <span class="stat-label">Total de usuários</span>
+            <strong class="stat-value" id="statTotal">–</strong>
+          </div>
+          <div class="stat-spark"><i class="fa-solid fa-chart-line"></i></div>
+        </article>
+
+        <article class="stat-card stat-card--alunos">
+          <div class="stat-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+          <div class="stat-body">
+            <span class="stat-label">Alunos</span>
+            <strong class="stat-value" id="statAlunos">–</strong>
+          </div>
+          <div class="stat-spark"><i class="fa-solid fa-chart-line"></i></div>
+        </article>
+
+        <article class="stat-card stat-card--funcionarios">
+          <div class="stat-icon"><i class="fa-solid fa-briefcase"></i></div>
+          <div class="stat-body">
+            <span class="stat-label">Funcionários</span>
+            <strong class="stat-value" id="statFuncionarios">–</strong>
+          </div>
+          <div class="stat-spark"><i class="fa-solid fa-chart-line"></i></div>
+        </article>
+
+        <article class="stat-card stat-card--convidados">
+          <div class="stat-icon"><i class="fa-solid fa-user-clock"></i></div>
+          <div class="stat-body">
+            <span class="stat-label">Convidados</span>
+            <strong class="stat-value" id="statConvidados">–</strong>
+          </div>
+          <div class="stat-spark"><i class="fa-solid fa-chart-line"></i></div>
+        </article>
+      </section>
+
+      <!-- Card da tabela -->
+      <section class="table-card">
+        <div class="table-card-header">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por nome, documento ou e-mail...">
+          </div>
+
+          <div class="filters-group">
+            <div class="select-wrap">
+              <i class="fa-solid fa-filter"></i>
+              <select id="filterTipo">
+                <option value="todos">Tipo: Todos</option>
+                <option value="aluno">Aluno</option>
+                <option value="funcionario">Funcionário</option>
+                <option value="convidado">Convidado</option>
+              </select>
+            </div>
+            <div class="select-wrap">
+              <i class="fa-solid fa-toggle-on"></i>
+              <select id="filterStatus">
+                <option value="todos">Status: Todos</option>
+                <option value="ativos">Ativos</option>
+                <option value="inativos">Inativos</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado: loading -->
+        <div id="loadingState" class="skeleton-wrap" hidden></div>
+
+        <!-- Estado: erro -->
+        <div id="errorState" class="error-state" hidden>
+          <div class="error-card">
+            <i class="fa-solid fa-plug-circle-xmark"></i>
+            <h3>Não foi possível carregar os usuários.</h3>
+            <p>Verifique se a API está em execução em <code>localhost:8000</code> e tente novamente.</p>
+            <button class="btn btn-primary-glow" id="btnRetry">
+              <i class="fa-solid fa-rotate-right"></i><span>Tentar novamente</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Estado: vazio (após filtro) -->
+        <div id="emptyState" class="empty-state" hidden>
+          <i class="fa-solid fa-inbox"></i>
+          <h3>Nenhum usuário encontrado</h3>
+          <p>Ajuste a pesquisa ou os filtros selecionados.</p>
+        </div>
+
+        <!-- Tabela -->
+        <div class="table-responsive-wrap" id="tableWrap" hidden>
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Avatar</th>
+                <th>Nome</th>
+                <th>Documento</th>
+                <th>Tipo</th>
+                <th>Telefone</th>
+                <th>Email</th>
+                <th>Cidade</th>
+                <th>Estado</th>
+                <th>Status</th>
+                <th>Criado em</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Rodapé / paginação -->
+        <div class="table-card-footer" id="tableFooter" hidden>
+          <span class="results-count" id="resultsCount"></span>
+          <nav aria-label="Paginação de usuários">
+            <ul class="pagination modern-pagination" id="paginationList">
+              <li class="page-item" id="pagPrev">
+                <button class="page-link" aria-label="Anterior">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+              </li>
+              <li class="page-item active"><span class="page-link">1</span></li>
+              <li class="page-item" id="pagNext">
+                <button class="page-link" aria-label="Próxima">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <span>© 2026 Darkone Admin · Painel de Usuários</span>
+        <span>Consumindo <code>GET /api/v1/usuarios/</code></span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index:1080"></div>
+
+  <!-- Modal Novo/Editar Usuário -->
+  <div class="modal fade" id="usuarioModal" tabindex="-1" aria-labelledby="usuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="usuarioModalLabel">Cadastro de Usuário</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-placeholder">
+            <i class="fa-solid fa-user-plus"></i>
+            <p>O formulário de cadastro e edição será implementado em uma próxima etapa.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-refresh" data-bs-dismiss="modal">Fechar</button>
+          <button type="button" class="btn btn-primary-glow" disabled>
+            <i class="fa-solid fa-floppy-disk"></i><span>Salvar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle (inclui Popper) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+  <!-- App JS -->
+  <script src="usuarios.js"></script>
+</body>
+</html>
