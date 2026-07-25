@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,11 +12,14 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
 
   <!-- App CSS -->
   <link href="usuarios.css" rel="stylesheet">
 </head>
+
 <body>
 
   <!-- ============ SIDEBAR ============ -->
@@ -277,14 +281,68 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <div class="modal-body">
-          <div class="modal-placeholder">
-            <i class="fa-solid fa-user-plus"></i>
-            <form action="">
-              <input type="hidden" name="usuario_id" id="usuario_id">
-              <input type="text" name="usuario_nome_completo" id="usuario_nome_completo">
-              <input type="text" name="usuario_documento" id="usuario_documento">
-            </form>
-          </div>
+          <form action="" class="usuario-form" id="usuarioForm">
+            <input type="hidden" name="usuario_id" id="usuario_id">
+
+            <div class="form-field form-field--full">
+              <label for="usuario_nome_completo">
+                <i class="fa-solid fa-user"></i><span>Nome completo</span>
+              </label>
+              <input type="text" name="usuario_nome_completo" id="usuario_nome_completo"
+                placeholder="Ex: Norberto Aprovado" maxlength="50" required>
+            </div>
+
+            <div class="form-field">
+              <label for="usuario_documento">
+                <i class="fa-solid fa-id-card"></i><span>Documento</span>
+              </label>
+              <input type="text" name="usuario_documento" id="usuario_documento" class="mono-input"
+                placeholder="000.000.000-00" maxlength="40" required>
+            </div>
+
+            <div class="form-field">
+              <label for="usuario_nascimento">
+                <i class="fa-solid fa-cake-candles"></i><span>Data de nascimento</span>
+              </label>
+              <input type="date" name="usuario_nascimento" id="usuario_nascimento" required>
+            </div>
+
+            <div class="form-field">
+              <label for="usuario_email">
+                <i class="fa-solid fa-envelope"></i><span>Email</span>
+              </label>
+              <input type="email" name="usuario_email" id="usuario_email" placeholder="nome@email.com" maxlength="100">
+            </div>
+
+            <div class="form-field">
+              <label for="usuario_telefone">
+                <i class="fa-solid fa-phone"></i><span>Telefone</span>
+              </label>
+              <input type="text" name="usuario_telefone" id="usuario_telefone" class="mono-input"
+                placeholder="(00) 00000-0000" maxlength="20">
+            </div>
+
+            <div class="form-field">
+              <label for="usuario_tipo_usuario">
+                <i class="fa-solid fa-user-tag"></i><span>Tipo de usuário</span>
+              </label>
+              <select name="usuario_tipo_usuario" id="usuario_tipo_usuario">
+                <option value="aluno">Aluno</option>
+                <option value="funcionario">Funcionário</option>
+                <option value="convidado" selected>Convidado</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="usuario_eh_ativo">
+                <i class="fa-solid fa-toggle-on"></i><span>Status</span>
+              </label>
+              <select name="usuario_eh_ativo" id="usuario_eh_ativo">
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
+            </div>
+          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-refresh" data-bs-dismiss="modal">Fechar</button>
@@ -301,4 +359,5 @@
   <!-- App JS -->
   <script src="usuarios.js"></script>
 </body>
+
 </html>

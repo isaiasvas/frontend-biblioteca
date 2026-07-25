@@ -437,16 +437,13 @@ const openModal = (usuarioId = null) => {
   document.getElementById('usuarioModalLabel').textContent =
     usuario ? 'Editar Usuario' : 'Cadastro de Usuário';
 
-  if (usuario) {
-    document.getElementById('usuario_nome_completo').value = usuario.nome_completo ?? '';
-    document.getElementById('usuario_documento').value = usuario.documento ?? '';
-    
-    // preencha aqui os demais campos do form com a entidade completa
-    // ex: document.getElementById('usuario_email').value = usuario.email ?? '';
-  } else {
-    // limpa o form ao abrir para "Novo Usuário"
-    document.getElementById('usuario_nome_completo').value = '';
-  }
+  document.getElementById('usuario_nome_completo').value = usuario?.nome_completo ?? '';
+  document.getElementById('usuario_documento').value = usuario?.documento ?? '';
+  document.getElementById('usuario_nascimento').value = usuario?.nascimento ?? '';
+  document.getElementById('usuario_email').value = usuario?.email ?? '';
+  document.getElementById('usuario_telefone').value = usuario?.telefone ?? '';
+  document.getElementById('usuario_eh_ativo').value = String(usuario?.eh_ativo ?? true);
+  document.getElementById('usuario_tipo_usuario').value = usuario?.tipo_usuario ?? 'convidado';
 };
 
 /* ---------- 12. Sidebar responsiva ---------- */
