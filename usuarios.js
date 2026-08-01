@@ -8,6 +8,7 @@
 /* ---------- 1. Configuração ---------- */
 const API_BASE_URL = 'http://localhost:8000/api/v1/';
 const USUARIOS_ENDPOINT = `${API_BASE_URL}usuarios/`;
+//const __TOKEN__ = '';
 
 /* ---------- 2. Estado da aplicação ---------- */
 const state = {
@@ -418,6 +419,47 @@ const loadUsuarios = async (url = USUARIOS_ENDPOINT) => {
   }
 };
 
+const addUsuarios = async (url = USUARIOS_ENDPOINT) => {
+
+  let payload = {
+    nome_completo: document.getElementById('usuario_nome_completo').value,
+    documento: document.getElementById('usuario_documento').value,
+    nascimento: document.getElementById('usuario_nascimento').value,
+    email: document.getElementById('usuario_email').value,
+    telefone: document.getElementById('usuario_telefone').value,
+    eh_ativo: document.getElementById('usuario_eh_ativo').value,
+    tipo_usuario: document.getElementById('usuario_tipo_usuario').value
+  }
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+};
+
+const editUsuarios = async (url = USUARIOS_ENDPOINT) => {
+  url = url + document.getElementById('usuario_id').value + '/';
+
+  let payload = {
+    nome_completo: document.getElementById('usuario_nome_completo').value,
+    documento: document.getElementById('usuario_documento').value,
+    nascimento: document.getElementById('usuario_nascimento').value,
+    email: document.getElementById('usuario_email').value,
+    telefone: document.getElementById('usuario_telefone').value,
+    eh_ativo: document.getElementById('usuario_eh_ativo').value,
+    tipo_usuario: document.getElementById('usuario_tipo_usuario').value
+  }
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+};
+
 /* ---------- 11. Modal ---------- */
 
 /**
@@ -497,6 +539,16 @@ const initEventListeners = () => {
 
   els.sidebarToggle.addEventListener('click', toggleSidebar);
   els.sidebarOverlay.addEventListener('click', closeSidebar);
+
+  document.getElementById('save_usuario')
+    .addEventListener('click', () => {
+      if (document.getElementById('usuario_id').value != null) {
+        editUsuarios()
+      } else {
+        addUsuarios()
+      }
+
+    })
 };
 
 /* ---------- 14. Inicialização ---------- */
@@ -504,7 +556,7 @@ const initEventListeners = () => {
 const init = () => {
   initEventListeners();
   loadUsuarios();
-  
+
 };
 
 document.addEventListener('DOMContentLoaded', init);
