@@ -8,6 +8,7 @@
 /* ---------- 1. Configuração ---------- */
 const API_BASE_URL = 'http://localhost:8000/api/v1/';
 const USUARIOS_ENDPOINT = `${API_BASE_URL}usuarios/`;
+//const __TOKEN__ = '';
 
 /* ---------- 2. Estado da aplicação ---------- */
 const state = {
