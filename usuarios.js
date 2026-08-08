@@ -177,7 +177,7 @@ const showToast = (tipo, titulo, mensagem) => {
       <span class="toast-icon"><i class="fa-solid ${icones[tipo]}"></i></span>
       <div>
         <strong>${escapeHtml(titulo)}</strong>
-        <span>${escapeHtml(mensagem)}</span>
+        <span style="font-size:12px">${escapeHtml(mensagem)}</span>
       </div>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Fechar"></button>
     </div>
@@ -312,13 +312,13 @@ const buildRow = (usuario) => {
       <td>${formatDate(usuario.created_at)}</td>
       <td>
         <div class="action-buttons">
-          <button class="action-btn view" title="Visualizar" data-bs-toggle="tooltip" aria-label="Visualizar usuário">
+          <button class="action-btn view" data-action="view" data-id="${usuario.id}" title="Visualizar" data-bs-toggle="tooltip" aria-label="Visualizar usuário">
             <i class="fa-solid fa-eye"></i>
           </button>
-          <button class="action-btn edit" id="btnEditarUsuario" onClick="openModal(${usuario.id})" title="Editar" data-bs-toggle="tooltip" aria-label="Editar usuário">
+          <button class="action-btn edit" data-action="edit" data-id="${usuario.id}" title="Editar" data-bs-toggle="tooltip" aria-label="Editar usuário">
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button class="action-btn delete" title="Excluir" data-bs-toggle="tooltip" aria-label="Excluir usuário">
+          <button class="action-btn delete" data-action="delete" data-id="${usuario.id}" title="Excluir" data-bs-toggle="tooltip" aria-label="Excluir usuário">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
@@ -419,56 +419,191 @@ const loadUsuarios = async (url = USUARIOS_ENDPOINT) => {
   }
 };
 
-const addUsuarios = async (url = USUARIOS_ENDPOINT) => {
+/**
+ * Extrai as mensagens de erro a partir da resposta de erro da API,
+ * uma mensagem por campo/entrada. Suporta os formatos comuns do
+ * Django REST Framework:
+ *  - { "detail": "mensagem" }
+ *  - { "campo": ["mensagem 1", "mensagem 2"] }
+ *  - { "non_field_errors": ["mensagem"] }
+ *  - string simples ou array de mensagens
+ * Caso a resposta não tenha corpo JSON válido, cai em um fallback com o status HTTP.
+ * @param {Response} response
+ * @returns {Promise<string[]>}
+ */
+const parseApiErrors = async (response) => {
+  let corpo = null;
 
-  let payload = {
-    nome_completo: document.getElementById('usuario_nome_completo').value,
-    documento: document.getElementById('usuario_documento').value,
-    nascimento: document.getElementById('usuario_nascimento').value,
-    email: document.getElementById('usuario_email').value,
-    telefone: document.getElementById('usuario_telefone').value,
-    eh_ativo: document.getElementById('usuario_eh_ativo').value,
-    tipo_usuario: document.getElementById('usuario_tipo_usuario').value
+  try {
+    corpo = await response.json();
+  } catch {
+    // Corpo não é JSON (ex: HTML de erro 500, resposta vazia etc.)
+    return [`Erro HTTP ${response.status} ${response.statusText || ''}`.trim()];
   }
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+
+  if (!corpo) {
+    return [`Erro HTTP ${response.status}`];
+  }
+
+  if (typeof corpo === 'string') return [corpo];
+
+  if (typeof corpo.detail === 'string') return [corpo.detail];
+
+  if (Array.isArray(corpo)) return corpo.map(String);
+
+  if (typeof corpo === 'object') {
+    const mensagens = Object.entries(corpo).flatMap(([campo, valor]) => {
+      const itens = Array.isArray(valor) ? valor : [valor];
+      return itens.map((item) => (campo === 'non_field_errors' ? String(item) : `${campo}: ${item}`));
+    });
+    if (mensagens.length > 0) return mensagens;
+  }
+
+  return [`Erro HTTP ${response.status}`];
 };
 
-const editUsuarios = async (url = USUARIOS_ENDPOINT) => {
-  url = url + document.getElementById('usuario_id').value + '/';
+/**
+ * Exibe um toast de erro para cada mensagem recebida.
+ * @param {string} titulo
+ * @param {string[]} mensagens
+ */
+const showErrorToasts = (titulo, mensagens) => {
+  mensagens.forEach((mensagem) => showToast('error', titulo, mensagem));
+};
 
-  let payload = {
-    nome_completo: document.getElementById('usuario_nome_completo').value,
-    documento: document.getElementById('usuario_documento').value,
-    nascimento: document.getElementById('usuario_nascimento').value,
-    email: document.getElementById('usuario_email').value,
-    telefone: document.getElementById('usuario_telefone').value,
-    eh_ativo: document.getElementById('usuario_eh_ativo').value,
-    tipo_usuario: document.getElementById('usuario_tipo_usuario').value
+/**
+ * Monta o payload do formulário de usuário a partir dos campos do modal.
+ * @returns {object}
+ */
+const buildUsuarioPayload = () => ({
+  nome_completo: document.getElementById('usuario_nome_completo').value,
+  documento: document.getElementById('usuario_documento').value,
+  nascimento: document.getElementById('usuario_nascimento').value,
+  email: document.getElementById('usuario_email').value,
+  telefone: document.getElementById('usuario_telefone').value,
+  eh_ativo: document.getElementById('usuario_eh_ativo').value === 'true',
+  tipo_usuario: document.getElementById('usuario_tipo_usuario').value,
+});
+
+/**
+ * Cria um novo usuário via POST.
+ * @param {string} url
+ */
+const addUsuarios = async (url = USUARIOS_ENDPOINT) => {
+  const payload = buildUsuarioPayload();
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const mensagens = await parseApiErrors(response);
+      const erro = new Error('Erro ao criar usuário');
+      erro.mensagens = mensagens;
+      throw erro;
+    }
+
+    usuarioModal.hide();
+    showToast('success', 'Usuário criado', 'O usuário foi cadastrado com sucesso.');
+    loadUsuarios();
+  } catch (erro) {
+    console.error('Falha ao criar usuário:', erro);
+    showErrorToasts('Erro ao criar', erro.mensagens || [erro.message || 'Não foi possível cadastrar o usuário.']);
   }
-  const response = await fetch(url, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+};
+
+/**
+ * Atualiza um usuário existente via PATCH.
+ * @param {string} url
+ */
+const editUsuarios = async (url = USUARIOS_ENDPOINT) => {
+  const usuarioUrl = `${url}${document.getElementById('usuario_id').value}/`;
+  const payload = buildUsuarioPayload();
+
+  try {
+    const response = await fetch(usuarioUrl, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const mensagens = await parseApiErrors(response);
+      const erro = new Error('Erro ao editar usuário');
+      erro.mensagens = mensagens;
+      throw erro;
+    }
+
+    usuarioModal.hide();
+    showToast('success', 'Usuário atualizado', 'As alterações foram salvas com sucesso.');
+    loadUsuarios();
+  } catch (erro) {
+    console.error('Falha ao editar usuário:', erro);
+    showErrorToasts('Erro ao editar', erro.mensagens || [erro.message || 'Não foi possível salvar as alterações.']);
+  }
+};
+
+/**
+ * Remove um usuário via DELETE, após confirmação do usuário.
+ * @param {number|string} usuarioId
+ * @param {string} url
+ */
+const deleteUsuarios = async (usuarioId, url = USUARIOS_ENDPOINT) => {
+  const usuario = state.usuarios.find((u) => u.id === usuarioId);
+  const nome = usuario?.nome_completo || `#${usuarioId}`;
+
+  const confirmou = window.confirm(`Deseja realmente excluir o usuário "${nome}"? Esta ação não pode ser desfeita.`);
+  if (!confirmou) return;
+
+  try {
+    const response = await fetch(`${url}${usuarioId}/`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const mensagens = await parseApiErrors(response);
+      const erro = new Error('Erro ao excluir usuário');
+      erro.mensagens = mensagens;
+      throw erro;
+    }
+
+    showToast('success', 'Usuário excluído', `"${nome}" foi removido com sucesso.`);
+    loadUsuarios();
+  } catch (erro) {
+    console.error('Falha ao excluir usuário:', erro);
+    showErrorToasts('Erro ao excluir', erro.mensagens || [erro.message || 'Não foi possível excluir o usuário.']);
+  }
 };
 
 /* ---------- 11. Modal ---------- */
 
 /**
- * Abre o modal reutilizável de cadastro/edição de usuário.
- * Por enquanto exibe apenas um placeholder, sem lógica de submissão.
+ * Campos do formulário que devem ser habilitados/desabilitados
+ * conforme o modo do modal (criação/edição vs. visualização).
  */
-const openModal = (usuarioId = null) => {
-  usuarioModal.show();
+const usuarioFormFieldIds = [
+  'usuario_nome_completo',
+  'usuario_documento',
+  'usuario_nascimento',
+  'usuario_email',
+  'usuario_telefone',
+  'usuario_tipo_usuario',
+  'usuario_eh_ativo',
+];
 
+/**
+ * Abre o modal reutilizável de criação, edição ou visualização de usuário.
+ * @param {number|null} usuarioId - id do usuário (null para criação).
+ * @param {'create'|'edit'|'view'} modo
+ */
+const openModal = (usuarioId = null, modo = usuarioId != null ? 'edit' : 'create') => {
   const usuario = usuarioId != null
     ? state.usuarios.find((u) => u.id === usuarioId)
     : null;
@@ -476,8 +611,12 @@ const openModal = (usuarioId = null) => {
   const form_usuario_id = document.getElementById('usuario_id');
   form_usuario_id.value = usuario?.id ?? '';
 
-  document.getElementById('usuarioModalLabel').textContent =
-    usuario ? 'Editar Usuario' : 'Cadastro de Usuário';
+  const titulos = {
+    create: 'Cadastro de Usuário',
+    edit: 'Editar Usuario',
+    view: 'Visualização de Usuário',
+  };
+  document.getElementById('usuarioModalLabel').textContent = titulos[modo];
 
   document.getElementById('usuario_nome_completo').value = usuario?.nome_completo ?? '';
   document.getElementById('usuario_documento').value = usuario?.documento ?? '';
@@ -486,6 +625,15 @@ const openModal = (usuarioId = null) => {
   document.getElementById('usuario_telefone').value = usuario?.telefone ?? '';
   document.getElementById('usuario_eh_ativo').value = String(usuario?.eh_ativo ?? true);
   document.getElementById('usuario_tipo_usuario').value = usuario?.tipo_usuario ?? 'convidado';
+
+  const somenteLeitura = modo === 'view';
+  usuarioFormFieldIds.forEach((id) => {
+    document.getElementById(id).disabled = somenteLeitura;
+  });
+
+  document.getElementById('save_usuario').hidden = somenteLeitura;
+
+  usuarioModal.show();
 };
 
 /* ---------- 12. Sidebar responsiva ---------- */
@@ -540,15 +688,33 @@ const initEventListeners = () => {
   els.sidebarToggle.addEventListener('click', toggleSidebar);
   els.sidebarOverlay.addEventListener('click', closeSidebar);
 
+  // Delegação de clique nos botões de ação da tabela (visualizar/editar/excluir),
+  // já que as linhas são recriadas dinamicamente a cada renderização.
+  els.tableBody.addEventListener('click', (evento) => {
+    const botao = evento.target.closest('[data-action]');
+    if (!botao) return;
+
+    const usuarioId = Number(botao.dataset.id);
+    const acao = botao.dataset.action;
+
+    if (acao === 'view') {
+      openModal(usuarioId, 'view');
+    } else if (acao === 'edit') {
+      openModal(usuarioId, 'edit');
+    } else if (acao === 'delete') {
+      deleteUsuarios(usuarioId);
+    }
+  });
+
   document.getElementById('save_usuario')
     .addEventListener('click', () => {
-      if (document.getElementById('usuario_id').value != null) {
-        editUsuarios()
+      const usuarioId = document.getElementById('usuario_id').value;
+      if (usuarioId !== '') {
+        editUsuarios();
       } else {
-        addUsuarios()
+        addUsuarios();
       }
-
-    })
+    });
 };
 
 /* ---------- 14. Inicialização ---------- */
@@ -560,4 +726,3 @@ const init = () => {
 };
 
 document.addEventListener('DOMContentLoaded', init);
-
